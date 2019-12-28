@@ -4,21 +4,21 @@ import isUndefined from './utils/isUndefined';
 import getInputValue from './logic/getInputValue';
 import skipValidation from './logic/skipValidation';
 import { EVENTS, VALIDATION_MODE } from './constants';
-import { Mode, ValidationOptions } from './types';
+import { FieldName, FieldValues, Mode, ValidationOptions } from './types';
 
 export type EventFunction = (args: any) => any;
 
-interface FieldProps {
+interface FieldProps<FormValues extends FieldValues, Name extends FieldName<FormValues>> {
   checked?: boolean;
   onBlur: EventFunction;
   onChange: EventFunction;
-  value: any;
+  value: FormValues[Name];
 }
 
-export type Props = {
-  name: string;
+export type Props<FormValues, Name extends FieldName<FormValues>> = {
+  name: Name;
   as?: React.ElementType<any> | React.FunctionComponent<any> | string | any;
-  children?: React.ReactNode | ((props: FieldProps) => React.ReactNode);
+  children?: React.ReactNode | ((props: FieldProps<FormValues, Name>) => React.ReactNode);
   rules?: ValidationOptions;
   onChange?: EventFunction;
   onBlur?: EventFunction;
@@ -29,7 +29,10 @@ export type Props = {
   control: any;
 };
 
-const Controller = ({
+const Controller = <
+  FormValues extends FieldValues = FieldValues,
+  Name extends FieldName<FormValues> = string,
+>({
   name,
   rules,
   as: InnerComponent,
@@ -50,7 +53,7 @@ const Controller = ({
     formState: { isSubmitted },
   },
   ...rest
-}: Props) => {
+}: Props<FormValues, Name>) => {
   const [value, setInputStateValue] = React.useState(
     isUndefined(defaultValue)
       ? isUndefined(defaultValues[name])
