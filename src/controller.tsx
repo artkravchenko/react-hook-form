@@ -8,9 +8,17 @@ import { Mode, ValidationOptions } from './types';
 
 export type EventFunction = (args: any) => any;
 
+interface FieldProps {
+  checked?: boolean;
+  onBlur: EventFunction;
+  onChange: EventFunction;
+  value: any;
+}
+
 export type Props = {
   name: string;
-  as: React.ElementType<any> | React.FunctionComponent<any> | string | any;
+  as?: React.ElementType<any> | React.FunctionComponent<any> | string | any;
+  children?: React.ReactNode | ((props: FieldProps) => React.ReactNode);
   rules?: ValidationOptions;
   onChange?: EventFunction;
   onBlur?: EventFunction;
@@ -127,6 +135,15 @@ const Controller = ({
       : {}),
     ...(isCheckboxInput ? { checked: value } : { value }),
   };
+
+  if (!InnerComponent && typeof rest.children === 'function') {
+    return rest.children({
+      checked: isCheckboxInput ? value : undefined,
+      value,
+      onBlur: onBlur ? eventWrapper(onBlur, EVENTS.BLUR) : handleBlur,
+      onChange: onChange ? eventWrapper(onChange, EVENTS.CHANGE) : handleChange,
+    });
+  }
 
   return React.isValidElement(InnerComponent) ? (
     React.cloneElement(InnerComponent, props)
